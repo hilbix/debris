@@ -1,7 +1,33 @@
-Satus
-=====
+*THIS HERE CAN BE EXTREMELY DANGEROUS FOR NOW!* You have been warned.
+
+Status
+======
 
 Unusable for others.  Just a rough start.
+
+*THIS HERE CAN BE EXTREMELY DANGEROUS FOR NOW!* You have been warned.
+
+Currently the development test bed is as follows:
+
+- Have a scratch VM with a Debian install
+
+- Do everything as root (remember: scratch VM!)
+
+- Fetch ptybuffer from http://www.scylla-charybdis.com/tool.php/ptybuffer
+
+- Extract, build and install ptybuffer (tar xfz; cd; make; make install)
+
+- mkdir /auto; cd /auto; git pull https://github.com/hilbix/debris
+
+- Edit machine.inc to your needs
+
+- Be sure the disks do not contain valuable data!
+
+- Run ./debris.sh
+
+*THIS HERE CAN BE EXTREMELY DANGEROUS FOR NOW!* You have been warned.
+
+Everything below is how the planned future:
 
 About
 =====
