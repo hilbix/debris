@@ -1,6 +1,8 @@
 #
 # Easy variable handling
 #
+# Copyright (C) 2011 Valentin Hilbig <webmaster@scylla-charybdis.com>
+# License see lib.sh
 
 # Args: Variable otherVariable
 getvar()

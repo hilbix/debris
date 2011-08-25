@@ -1,6 +1,8 @@
 #
 # Logging and output
 #
+# Copyright (C) 2011 Valentin Hilbig <webmaster@scylla-charybdis.com>
+# License see lib.sh
 
 now()
 {
