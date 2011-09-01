@@ -185,7 +185,7 @@ logsect $MINSIZE 'usable sector count'
 # sets total (number of free sectors)
 partstep2()
 {
-total=MINSIZE
+let total=MINSIZE
 restpart=
 for p in $PARTITIONS
 do
@@ -206,7 +206,7 @@ done
 
 ########################################################################
 
-# Calculate the % partitions (rounded up)
+# Calculate the % partitions (rounded down)
 # updates total
 partstep3()
 {
@@ -214,12 +214,14 @@ sum=0
 for p in $PARTITIONS
 do
 	getpart $p
+echo $partSIZE
 	case "$partSIZE" in
-	*%)	;;
+	*%%)	permille="${partSIZE%\%%}000";;
+	*%)	permille="${partSIZE%\%}0000";;
 	*)	continue;;
 	esac
 
-	let sects="((total*${partSIZE%\%}+99)/100+SECTORALIGN-1)/SECTORALIGN"
+	let sects="(total*permille)/1000000/SECTORALIGN"
 	let sects*=SECTORALIGN
 	let PART${p}SECT=sects
 	let sum+=sects
