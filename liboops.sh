@@ -15,14 +15,16 @@ exit 1
 assert()
 {
 ASSERTCMP="$1"
-shift
-[ ".$ASSERTCMP" = ".$1" ] || OOPS "mismatch, wanted '$ASSERTCMP' got '$*'"
+ASSERTVAL="$2"
+shift 2 || OOPS "too few arguments to assert: $*"
+[ ".$ASSERTCMP" = ".$ASSERTVAL" ] || OOPS "assert mismatch: wanted '$ASSERTCMP' got '$ASSERTVAL' $*"
 }
 
 # As assert, but error if both are the same
 unassert()
 {
 ASSERTCMP="$1"
-shift
-[ ".$ASSERTCMP" = ".$1" ] && OOPS "mismatch, wanted '$ASSERTCMP' got '$*'"
+ASSERTVAL="$2"
+shift 2 || OOPS "too few arguments to unassert: $*"
+[ ".$ASSERTCMP" = ".$ASSERTVAL" ] && OOPS "unassert match: got '$ASSERTCMP' $*"
 }

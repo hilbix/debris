@@ -31,6 +31,12 @@ setvar()
 eval $1=\"\$2\"
 }
 
+logvar()
+{
+setvar "$@"
+logf "set %20s = %s" "$@"
+}
+
 # Initialize variables: VAR$suffix1=VAL VAR$suffix2=VAL ...
 # Args: VAR VAL SUFFIX...
 setvars()
