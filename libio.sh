@@ -47,7 +47,7 @@ do
 		output="${output#$LF}"
 		return
 	fi
-	[ -n "$WAITFORCALLBACK" ] && $WAITFORCALLBACK "$last"
+	[ -z "$WAITFORCALLBACK" ] || $WAITFORCALLBACK "$last"
 	[ -n "$last" ] &&
 	output="$output
 $last"
@@ -62,6 +62,7 @@ calls=0
 # Args: "command to send" [command to log]
 sendcmd()
 {
+WAITFORCALLBACK=
 waitfor "###PROMPT###" t30
 
 let calls++
@@ -77,7 +78,6 @@ send "$1"
 invoke()
 {
 sendcmd "run $*"
-WAITFORCALLBACK=
 waitfor "###RUN###" t30
 }
 

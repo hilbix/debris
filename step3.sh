@@ -65,6 +65,7 @@ EOF
 
 grubhack()
 {
+log "XXXXX $line XXXXX"
 case "$line" in
 
 *\ Linux\ command\ line\ *)
@@ -82,5 +83,6 @@ case "$line" in
 esac
 }
 
+set -x
 callback grubhack apt-get -yq install grub-pc
 
