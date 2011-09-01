@@ -22,21 +22,21 @@ Currently a suitable development testbed is:
 
 - Boot the "Live" VM, then do:
 
-	sudo su -
-	# vi /etc/apt/sources.list
-	# export http_proxy=http://192.168.1.1:8080
-
-	apt-get udpate
-	# apt-get upgrade # this probably will use up all your RAM
-	apt-get install git
-
-	git clone https://github.com/hilbix/debris.git
-	cd debris
-	
-	cp EXAMPLE.debris TEST.debris
-	vi TEST.debris
-	
-	./debris.sh TEST
+    sudo su -
+    # vi /etc/apt/sources.list
+    # export http_proxy=http://192.168.1.1:8080
+    
+    apt-get udpate
+    # apt-get upgrade # this probably will use up all your RAM
+    apt-get install git
+    
+    git clone https://github.com/hilbix/debris.git
+    cd debris
+    
+    cp EXAMPLE.debris TEST.debris
+    vi TEST.debris
+    
+    ./debris.sh TEST
 
 - Eject the CD, reboot into the new system
 
