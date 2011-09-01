@@ -25,6 +25,9 @@ then
 . ./libconst.sh
 . ./liblog.sh
 . ./liboops.sh
+
+[ 0 = "`id -u`" ] || OOPS "must run as root"
+
 . ./libvar.sh
 . ./libio.sh
 . ./libpart.sh
