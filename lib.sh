@@ -19,9 +19,22 @@
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
+if [ already_included != "$HAVE_DEBRIS_LIB" ]
+then
+
 . ./libconst.sh
 . ./liblog.sh
 . ./liboops.sh
 . ./libvar.sh
 . ./libio.sh
+. ./libpart.sh
 
+# Read in the machine definition file ($MACHINE.debris)
+# $MACHINE defaults to "$1" which defaults to "TEST".
+. ./libmachine.sh
+
+# Connect to the machine
+. ./libconnect.sh
+
+fi
+HAVE_DEBRIS_LIB=already_included
