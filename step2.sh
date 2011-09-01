@@ -2,9 +2,6 @@
 
 . ./lib.sh
 
-proxyline=""
-[ -z "$PROXY" ] || proxyline="export http_proxy=$PROXY"
-
 # THIS IS WRONG FOR NOW
 procedure <<EOF
 
