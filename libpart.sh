@@ -142,9 +142,9 @@ partstep0()
 {
 piped cat /proc/mounts |
 grep ' /ins/' |
-while read -r fs rest
+while read -r fs dir rest
 do
-	call ok umount "$fs"
+	call ok umount "$dir"
 done
 piped mdadm --detail --scan |
 while read -r array dev uid
@@ -368,7 +368,7 @@ partflag()
 while	[ 0 != "$#" ]
 do
 	flag="$1"
-	shift || OOPS "internal error"
+	shift || OOPS "internal error in partflag"
 
 	case "$flag" in
 	crypt)	#
