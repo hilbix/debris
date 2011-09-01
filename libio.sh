@@ -158,7 +158,7 @@ case "$output" in
 	;;
 *$LF*)	log "piped <<<<<<<<<<
 $output
->>>>>>>>>>"
+>>>>>>>>>>";;
 *)	log "piped <$output>";;
 esac
 echo "$output"
