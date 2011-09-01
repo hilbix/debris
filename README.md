@@ -1,66 +1,75 @@
-*THIS HERE CAN BE EXTREMELY DANGEROUS FOR NOW!* You have been warned.
+**THIS HERE CAN BE EXTREMELY DANGEROUS FOR NOW!** You have been warned.
 
 Status
 ======
 
-Unusable for others.  Just a rough start.
+INCOMPLETE, so it does not work yet.
 
-*THIS HERE CAN BE EXTREMELY DANGEROUS FOR NOW!* You have been warned.
+**THIS HERE CAN BE EXTREMELY DANGEROUS FOR NOW!** You have been warned.
 
-Currently the development test bed is as follows:
+Currently a suitable development testbed is:
+--------------------------------------------
 
-- Have a scratch VM with a Debian install
+- Download and install VirtualBox from virtualbox.org
 
-- Do everything as root (remember: scratch VM!)
+- Download *-rescue.iso from http://cdimage.debian.org/cdimage/release/current-live/i386/iso-hybrid/
 
-- Fetch ptybuffer from http://www.scylla-charybdis.com/tool.php/ptybuffer
+- Create a scratch VM with 1 GB RAM and two networks: NAT and Host Only
 
-- Extract, build and install ptybuffer (tar xfz; cd; make; make install)
+- Add two VM drives of the same size, this will become /dev/sda and /dev/sdb
 
-- mkdir /auto; cd /auto; git pull https://github.com/hilbix/debris
+- Boot the VM into the downloaded live system by booting from the ISO image (this is: add the ISO to the virtual CD-ROM drive)
 
-- Edit machine.inc to your needs
+- Boot the "Live" VM, then do:
 
-- Be sure the disks do not contain valuable data!
+	sudo su -
+	# vi /etc/apt/sources.list
+	# export http_proxy=http://192.168.1.1:8080
 
-- Run ./debris.sh
+	apt-get udpate
+	# apt-get upgrade # this probably will use up all your RAM
+	apt-get install git
 
-*THIS HERE CAN BE EXTREMELY DANGEROUS FOR NOW!* You have been warned.
+	git clone https://github.com/hilbix/debris.git
+	cd debris
+	
+	cp EXAMPLE.debris TEST.debris
+	vi TEST.debris
+	
+	./debris.sh TEST
 
-Everything below is how the planned future:
+- Eject the CD, reboot into the new system
+
+**RUNNING THIS NOT IN A SCRATCH VM CAN BE EXTREMELY DANGEROUS FOR NOW!** You have been warned.
+
+**Everything below is planned future:**
 
 About
 =====
 
-DebRIS is my method to install a minimal Debian onto remote
-root servers.
+**THIS HERE CAN BE EXTREMELY DANGEROUS FOR NOW!** You have been warned.
 
-The idea is:
+DebRIS is my method to install a minimal Debian onto remote root servers from scratch.
 
-- Have a single easy to understand and maintain text file
-  which contains the complete(!) base-configuration of a system.
+The idea behind DebRIS:
 
-- Have a fully installed local or server Linux machine which 
-  has a broad set of tools.
+- Have a single easy to understand and maintain text file which contains the complete(!) base-configuration of a system.
 
-- Have a remote system which must be installed and can be booted
-  into some sort of rescue system in which you can SSH into
-  (or open another socket from the local to the remote).
+- Have a fully installed local or server Linux machine which has a broad set of tools.
 
-DebRIS offers the building blocks to have an easily documented,
-easy to use, flexible and complete basic setup of any machine.
+- Have a remote system which must be installed and can be booted into some sort of rescue system in which you can SSH into (or open another socket from the local to the remote).
 
-Flexibility is in the partitioning scheme, which helps you to specify
-your partition layout, with MD, crypo and LVM in place.
+DebRIS offers the building blocks to have an easily documented, easy to use, flexible and complete basic setup of any machine.
+
+Flexibility is in the partitioning scheme, which helps you to specify your partition layout, with MD, crypo and LVM in place.
+
+The easy part is that you can edit the text file and sit back and relax while the machine is installed, without need of any manual intervention.  Ever.
 
 
 Requirements:
 -------------
 
-The requirements will change in future.  The plan is, to have just
-one single static binary which must be run on the remote side.
-For now this is not possible yet, so the requirements are somewhat
-higher.
+The requirements will change in future.  The plan is, to have just one single static binary which must be run on the remote side.  For now this is not possible yet, so the requirements are somewhat higher.
 
 The remote must offer the minimal basic setup tools:
 
@@ -96,25 +105,17 @@ DebRIS will do following:
 
 - Now the machine is set up and can boot into the fresh system
 
-The intersting part about DebRIS is, that it works from the commandline.
-It can do chroot and everything just like a normal admin.
+The intersting part about DebRIS is, that it works from the commandline.  It can do chroot and everything just like a normal admin.
 
-So you do not need any fancy things on the remote, except being able to
-run it in some noninteractive batch mode.
+So you do not need any fancy things on the remote, except being able to run it in some noninteractive batch mode.
 
 
 Future thoughts:
 ================
 
-Currently DebRIS only runs from bare metal to boot.  In future perhaps
-this can be extended such, that it continues to setup a machine after
-the initial boot.
+- Currently DebRIS only runs from bare metal to boot.  In future perhaps this can be extended such, that it continues to setup a machine after the initial boot.
 
-Currently the remote system must have bash and some trainloads of other
-tools.  Perhaps this can be relaxed as well.  The goal is to have some
-single static binary (like BusyBox) which is the only requirement on
-the remote system to be started.  Perhaps this all can be even stuffed
-into a single Linux kernel/initrd combination.
+- Currently the remote system must have bash and some trainloads of other tools.  Perhaps this can be relaxed as well.  The goal is to have some single static binary (like BusyBox) which is the only requirement on the remote system to be started.  Perhaps this all can be even stuffed into a single Linux kernel/initrd combination or can be `cat`ted to the remote via the tty link.
 
-Then everything else (including debootstrap) shall be provided by DebRIS.
+In that case plain everything (including debootstrap) shall be provided by DebRIS and not be a requirement on the remote.
 
