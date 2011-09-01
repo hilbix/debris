@@ -1,0 +1,31 @@
+# Example machine setup, see README.md for how to use this.
+#
+# See https://github.com/hilbix/debris
+#
+# This Works is placed under the terms of the Copyright Less License,
+# see file COPYRIGHT.CLL.  USE AT OWN RISK, ABSOLUTELY NO WARRANTY.
+
+# Host FQDN
+HOST testsetup.03.softkill.net
+#CONN ssh IP
+CONN local
+
+# DISK path
+DISK /dev/sda
+DISK /dev/sdb
+
+# order of flags is important
+# PART name size flags...
+PART boot 200  boot raid
+PART swap 128  crypt
+PART main 100% raid LVM
+PART data  10  LVM
+
+# Type defaults to ext4, size to the container's size
+# FS container [type] name|/path [size]
+FS main      /
+FS boot ext2 /boot ext2
+FS main      /usr  2000
+FS main      /var  1000
+FS main      /home 100
+
