@@ -54,7 +54,6 @@ procedure <<EOF
 passwd -d root
 ok killall cron exim4 mdadm
 
-ok umount -a
 mount -a
 
 $proxyline
