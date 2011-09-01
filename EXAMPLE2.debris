@@ -1,0 +1,28 @@
+# Host FQDN
+HOST luna755.server4you.de
+CONN local
+ARCH x86_64 squeeze minbase
+KERN linux-image-2.6.32-5-686
+PACK vim less firmware-linux-nonfree ssh
+
+# DISK path
+DISK /dev/sda
+DISK /dev/sdb
+
+# order of flags is important
+# PART name size flags...
+PART boot    768  boot raid
+PART swap  16384  crypt
+PART main 200000  raid LVM
+PART data    100% LVM
+
+# THIS IS NOT YET SUPPORTED
+
+# Type defaults to ext4, size to the container's size
+# FS container [type] name|/path [size]
+FS main      /     3000
+FS boot ext2 /boot
+FS main      /usr  12000
+FS main      /var  12000
+FS main      /home 10000
+
