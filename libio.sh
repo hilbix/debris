@@ -29,7 +29,7 @@ read -r$1 line <&3 && setlast $line
 send()
 {
 logf "SEND %s" "$*"
-ptybufferconnect -eqnp "$*" .sock
+build/ptybufferconnect -eqnp "$*" .sock
 }
 
 # Args: TAG_to_wait_for [getline_option]
