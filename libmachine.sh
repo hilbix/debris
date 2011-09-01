@@ -41,9 +41,11 @@ logvar PACKAGES "$*"
 }
 
 PROXY=
+proxyline=
 PROXY()
 {
 logvar PROXY "$@"
+proxyline="export http_proxy=$1"
 }
 
 DISKS=""
