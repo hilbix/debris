@@ -53,19 +53,30 @@ procedure <<EOF
 
 ok killall cron exim4 mdadm
 
-ok umount /dev
-ok umount /sys
-ok umount /proc
-
-mount /proc
-mount /dev
-mount /sys
+ok umount -a
+mount -a
 
 $proxyline
 apt-get update
-apt-get -yq install firmware-linux-nonfree ssh mdadm
+apt-get -yq install firmware-linux-nonfree ssh mdadm dhcp3-client
 apt-get -yq install $PACKAGES
 apt-get -yq install $KERN
-apt-get -yq install grub-pc
 EOF
+
+grubhack()
+{
+case "$line" in
+*GRUB\ install\ devices:*)
+	devs=""
+	for d in $DISKS
+	do
+		getdisk $d
+		devs="$devs $diskDEV"
+	done
+	send "${devs# }"
+	;;
+esac
+}
+
+callback grubhack apt-get -yq install grub-pc
 

@@ -47,6 +47,7 @@ do
 		output="${output#$LF}"
 		return
 	fi
+	[ -n "$WAITFORCALLBACK" ] && $WAITFORCALLBACK "$last"
 	[ -n "$last" ] &&
 	output="$output
 $last"
@@ -76,6 +77,7 @@ send "$1"
 invoke()
 {
 sendcmd "run $*"
+WAITFORCALLBACK=
 waitfor "###RUN###" t30
 }
 
@@ -104,6 +106,16 @@ setvar CALLOUT$1 "$output"
 call()
 {
 invoke "$@"
+result $calls "$lasttag"
+}
+
+# Args callbackfn rest see sendcmd
+callback()
+{
+CALLBACKCMD="$1"
+shift || WRONG callback "$*"
+invoke "$@"
+WAITFORCALLBACK="$CALLBACKCMD"
 result $calls "$lasttag"
 }
 
