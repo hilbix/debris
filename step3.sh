@@ -83,6 +83,5 @@ case "$line" in
 esac
 }
 
-set -x
 callback grubhack apt-get -yq install grub-pc
 
