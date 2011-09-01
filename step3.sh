@@ -51,6 +51,7 @@ callsub chroot /ins /run.sh
 
 procedure <<EOF
 
+passwd -d root
 ok killall cron exim4 mdadm
 
 ok umount -a
