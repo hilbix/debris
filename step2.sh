@@ -2,6 +2,10 @@
 
 . ./lib.sh
 
+proxyline=""
+[ -z "$PROXY" ] || proxyline="export http_proxy=$PROXY"
+
+# THIS IS WRONG FOR NOW
 procedure <<EOF
 
 ok umount /dev/md/md1
@@ -15,8 +19,8 @@ mount /dev/md/md3 ins
 mkdir -p /ins/boot
 mount /dev/md/md1 /ins/boot
 
-export http_proxy=http://192.168.57.1:8888
-debootstrap --arch=i386 --variant=minbase squeeze /ins http://ftp2.de.debian.org/debian
+$proxyline
+debootstrap --arch=$ARCH --variant=$BASE $RELEASE /ins $MIRROR
 
 EOF
 
