@@ -19,10 +19,9 @@ echo "$*" >> TMP.log
 logf()
 {
 LOGFORMAT="$1"
-shift || OOPS "too few arguments to logf: $*"
+shift || WRONG logf "$*"
 now
-printf "%s $LOGFORMAT\\n" "$NOW" "$@" >&2
-printf "%s $LOGFORMAT\\n" "$NOW" "$@" >> SETUP.log
+printf "%s $LOGFORMAT\\n" "$NOW" "$@" | tee -a TMP.log SETUP.log >&2
 }
 
 logcalls()
@@ -60,7 +59,7 @@ printf B
 logsect()
 {
 LOGSECTORS="$1"
-shift || OOPS "too few arguments to logsect: $*"
+shift || WRONG logsect "$*"
 logsize="`sizestring $[LOGSECTORS*2048]`"
 logf "%-20s %10d (%s)" "`printf "$@"`:" "$LOGSECTORS" "${logsize# }"
 }

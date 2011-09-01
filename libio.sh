@@ -78,6 +78,11 @@ sendcmd "run $*"
 waitfor "###RUN###" t30
 }
 
+resok()
+{
+assert 0 "$lastcode" ", command return error, last output: $output"
+}
+
 # Args: $calls "$lasttag"
 # Wait for the result.
 # Remember the output in CALLOUT$callnr
@@ -89,7 +94,7 @@ result()
 
 waitfor "###RES###"
 assert "$2" "$lasttag" "(chain of command out of sync)"
-assert 0 "$lastcode" "(command return value)"
+resok
 setvar CALLOUT$1 "$output"
 }
 
@@ -115,7 +120,7 @@ setvar CALLT$callstack "$lasttag"
 lastcallsubtag="$lasttag"
 
 waitfor "###RES###"
-assert 0 "$lastcode" "(command return value)"
+resok
 # Check that the ID changed, such that we are sure another ./run.sh runs.
 unassert "$lastcallsubtag" "$lasttag" "callsub did not work, command returned"
 }
@@ -135,7 +140,7 @@ let callstack--
 pullvar()
 {
 VAR="$1"
-shift || OOPS "too few arguments to pullvar: $*"
+shift || WRONG pullvar "$*"
 call "$@"
 setvar GET$VAR "$output"
 log "GET$VAR set to '$output'"
@@ -147,8 +152,16 @@ log "GET$VAR set to '$output'"
 piped()
 {
 call "$@"
-log "piped >>>>>>>>>>$output<<<<<<<<<<"
-echo "${output:1}"
+case "$output" in
+'')	log "piped (nothing)"
+	return 0
+	;;
+*$LF*)	log "piped <<<<<<<<<<
+$output
+>>>>>>>>>>"
+*)	log "piped <$output>";;
+esac
+echo "$output"
 }
 
 # Args: src(local) dest(remote) [ignored for now]

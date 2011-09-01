@@ -6,8 +6,18 @@
 
 OOPS()
 {
-log "OOPS $*"
+logf "OOPS %s" "$*"
 exit 1
+}
+
+WRONG()
+{
+OOPS "wrong number of arguments: $*"
+}
+
+INTERN()
+{
+OOPS "internal error in $*"
 }
 
 # Args: Val Val [explain]
@@ -16,7 +26,7 @@ assert()
 {
 ASSERTCMP="$1"
 ASSERTVAL="$2"
-shift 2 || OOPS "too few arguments to assert: $*"
+shift 2 || WRONG assert "$*"
 [ ".$ASSERTCMP" = ".$ASSERTVAL" ] || OOPS "assert mismatch: wanted '$ASSERTCMP' got '$ASSERTVAL' $*"
 }
 
@@ -25,6 +35,6 @@ unassert()
 {
 ASSERTCMP="$1"
 ASSERTVAL="$2"
-shift 2 || OOPS "too few arguments to unassert: $*"
+shift 2 || WRONG unassert "$*"
 [ ".$ASSERTCMP" = ".$ASSERTVAL" ] && OOPS "unassert match: got '$ASSERTCMP' $*"
 }

@@ -147,11 +147,13 @@ do
 	call ok umount "$dir"
 done
 piped mdadm --detail --scan |
+{
 while read -r array dev uid
 do
 	call ok umount "$dev"
 	call mdadm --stop "$dev"
 done
+} || OOPS "partstep0 cleanup failed"
 }
 
 ########################################################################
@@ -368,7 +370,7 @@ partflag()
 while	[ 0 != "$#" ]
 do
 	flag="$1"
-	shift || OOPS "internal error in partflag"
+	shift || INTERN partflag
 
 	case "$flag" in
 	crypt)	#

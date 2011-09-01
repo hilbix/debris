@@ -18,7 +18,7 @@ DOMAINNAME="${1#*.}"
 CONN()
 {
 CONNECTIONTYPE="$1"
-shift || OOPS "too few arguments to CONN: $*"
+shift || WRONG CONN "$*"
 CONNECTIONARGS="$*"
 }
 
@@ -40,7 +40,7 @@ PARTITIONS="$PARTITIONS $PARTNUMBER"
 logvar PART${PARTNUMBER}NAME "$1"
 setvar PART_$1 $PARTNUMBER
 logvar PART${PARTNUMBER}SIZE "$2"
-doshift 2
+shift 2 || WRONG PART "$*"
 logvar PART${PARTNUMBER}FLAG "$*"
 }
 

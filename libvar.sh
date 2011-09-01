@@ -17,7 +17,7 @@ getvars()
 {
 getvarto="$1"
 getvarfrom="$2"
-shift 2 || OOPS "wrong number of arguments: getvars $*"
+shift 2 || WRONG getvars "$*"
 for xset
 do
 	getvar $getvarto$xset $getvarfrom$xset
@@ -43,7 +43,7 @@ setvars()
 {
 setvarto="$1"
 setvarval="$2"
-shift 2 || OOPS "wrong number of arguments: setvars $*"
+shift 2 || WRONG setvars "$*"
 for xset
 do
 	setvar $setvarto$xset "$setvarval"
