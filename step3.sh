@@ -66,7 +66,11 @@ EOF
 grubhack()
 {
 case "$line" in
-*GRUB\ install\ devices:*)
+
+*\ Linux\ command\ line\ *)
+	send "";;
+
+*Enter\ the\ items\ you\ want\ to\ select,\ *)
 	devs=""
 	for d in $DISKS
 	do
