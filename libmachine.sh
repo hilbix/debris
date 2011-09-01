@@ -18,7 +18,7 @@ DOMAINNAME="${1#*.}"
 CONN()
 {
 CONNECTIONTYPE="$1"
-shift
+shift || OOPS "too few arguments to CONN: $*"
 CONNECTIONARGS="$*"
 }
 
@@ -28,7 +28,7 @@ DISK()
 {
 let DISKNUMBER++
 DISKS="$DISKS $DISKNUMBER"
-
+logvar DISK$DISKNUMBER $*
 }
 
 PARTITIONS=""
@@ -37,11 +37,11 @@ PART()
 {
 let PARTNUMBER++
 PARTITIONS="$PARTITIONS $PARTNUMBER"
-setvar PART${PARTNUMBER}NAME "$1"
+logvar PART${PARTNUMBER}NAME "$1"
 setvar PART_$1 $PARTNUMBER
-setvar PART${PARTNUMBER}SIZE "$2"
-shift
-setvar PART${PARTNUMBER}FLAG "$*"
+logvar PART${PARTNUMBER}SIZE "$2"
+doshift 2
+logvar PART${PARTNUMBER}FLAG "$*"
 }
 
 FILESYSTEMS=""
