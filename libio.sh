@@ -12,6 +12,7 @@ last="${*%$CR}"
 lastfirst="$1"
 lasttag="$2"
 lastcode="${3%$CR}"
+lastrealcode="${4%$CR}"
 [ -n "$last" ] || return 0
 lastline="$*"
 log "got $lastline"
@@ -173,7 +174,7 @@ sendcmd copy "copy $*"
 waitfor "###COPY###" t30
 
 # Stdin is not yet supported by ptybufferconnect
-uuencode "$1" "$2" | socat - unix:.sock
+uuencode "$@" | socat - unix:.sock
 
 result $calls "$lasttag"
 }

@@ -63,9 +63,10 @@ ret=$?
 cmd_run()
 {
 run "$*"
+ret=
 x "$@"
 echo "
-###RES### $$-$cmdnr $?"
+###RES### $$-$cmdnr $? $ret"
 }
 
 # Requires output of "printansi -lp. file; echo EOF" on the other side
