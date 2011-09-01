@@ -51,6 +51,8 @@ callsub chroot /ins /run.sh
 
 procedure <<EOF
 
+ok killall cron exim4
+
 ok umount /dev
 ok umount /sys
 ok umount /proc
@@ -61,6 +63,7 @@ mount /sys
 
 $proxyline
 apt-get update
+apt-get -yq install firmware-linux-nonfree ssh mdadm
 apt-get -yq install $PACKAGES
 apt-get -yq install $KERN
 apt-get -yq install grub-pc
