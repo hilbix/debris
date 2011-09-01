@@ -72,5 +72,5 @@ done
 tt http://www.scylla-charybdis.com/download/ptybuffer-0.6.4-20071020-171424.tar.gz 8bbc9f57c9ca5a02a139bc0407ac2ea9 ptybuffer ptybufferconnect
 
 # Check for some other
-checkfor timeout socat parted blockdev
+checkfor timeout socat parted blockdev debootstrap uudecode
 

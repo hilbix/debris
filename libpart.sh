@@ -140,6 +140,7 @@ setvar DEV$dev$1 "$old$2"
 # Roll back any previous run.  Bring everything to a clean start.
 partstep0()
 {
+call ok killall -9 mdadm cron exim4
 piped cat /proc/mounts |
 grep ' /ins' |
 while read -r fs dir rest

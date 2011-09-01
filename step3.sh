@@ -51,7 +51,7 @@ callsub chroot /ins /run.sh
 
 procedure <<EOF
 
-ok killall cron exim4
+ok killall cron exim4 mdadm
 
 ok umount /dev
 ok umount /sys
