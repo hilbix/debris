@@ -59,7 +59,10 @@ mount /proc
 mount /dev
 mount /sys
 
+$proxyline
 apt-get update
-apt-get install $KERN $PACKAGES
+apt-get -yq install $PACKAGES
+apt-get -yq install $KERN
+apt-get -yq install grub-pc
 EOF
 
