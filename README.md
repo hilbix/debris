@@ -21,7 +21,7 @@ Currently a suitable development testbed is:
 - Boot the VM into the downloaded live system by booting from the ISO image (this is: add the ISO to the virtual CD-ROM drive)
 
 - Boot the "Live" VM, then do:
-
+```bash
     sudo su -
     # vi /etc/apt/sources.list
     # export http_proxy=http://192.168.1.1:8080
@@ -37,7 +37,7 @@ Currently a suitable development testbed is:
     vi TEST.debris
     
     ./debris.sh TEST
-
+```
 - Eject the CD, reboot into the new system
 
 **RUNNING THIS NOT IN A SCRATCH VM CAN BE EXTREMELY DANGEROUS FOR NOW!** You have been warned.
