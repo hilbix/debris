@@ -11,7 +11,7 @@ HOST testsetup.03.softkill.net
 CONN local
 ARCH i386 squeeze minbase
 KERN linux-image-2.6.32-5-686
-PACK vim less firmware-linux-nonfree ssh
+PACK vim less
 
 PROXY http://192.168.57.1:8888/
 
