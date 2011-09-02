@@ -65,7 +65,6 @@ EOF
 
 grubhack()
 {
-log "XXXXX $line XXXXX"
 case "$line" in
 
 *\ Linux\ command\ line\ *)
