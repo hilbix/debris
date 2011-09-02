@@ -5,21 +5,27 @@
 # This Works is placed under the terms of the Copyright Less License,
 # see file COPYRIGHT.CLL.  USE AT OWN RISK, ABSOLUTELY NO WARRANTY.
 
-# Host FQDN
+# HOST FQDN
 HOST testsetup.03.softkill.net
-#CONN ssh IP
+#CONN ssh I.P.N.R
 CONN local
+# ARCH arch debian base [mirror]
 ARCH i386 squeeze minbase
+# KERN kernel [optional kernel boot paramerters]
 KERN linux-image-2.6.32-5-686
+# Additional packages
+# PACK package...
 PACK vim less
 
+# Optional: Proxy to use
+# PROXY url
 PROXY http://192.168.57.1:8888/
 
 # DISK path
 DISK /dev/sda
 DISK /dev/sdb
 
-# order of flags is important
+# Order of flags is important
 # PART name size flags...
 PART boot 200  boot raid
 PART swap 128  crypt

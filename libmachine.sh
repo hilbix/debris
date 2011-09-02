@@ -32,7 +32,9 @@ logvar MIRROR  "${4:-http://cdn.debian.net/debian/}"
 
 KERN()
 {
-logvar KERN "$@"
+logvar KERN $1
+shift
+logvar KOPT "$*"
 }
 
 PACK()

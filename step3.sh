@@ -39,8 +39,11 @@ none /sys     sysfs    noexec,nosuid,nodev  0 0
 EOF
 }
 
+mkdir -p /ins/root/.ssh
+copy ~/.ssh/authorized_keys /ins/root/.ssh/authorized_keys
+
 echo "$HOSTNAME" | copy /ins/etc/hostname
-echo "$DOMAINNAME"
+echo "$HOSTNAME.$DOMAINNAME" | copy /ins/etc/mailname
 
 mksources | debdoubler | copy /ins/etc/apt/sources.list
 mkinterfaces | copy /ins/etc/network/interfaces
@@ -58,17 +61,18 @@ mount -a
 
 $proxyline
 apt-get update
-apt-get -yq install firmware-linux-nonfree ssh mdadm dhcp3-client
+apt-get -yq install firmware-linux-nonfree ssh mdadm lvm2 dhcp3-client
 apt-get -yq install $PACKAGES
 apt-get -yq install $KERN
 EOF
+
 
 grubhack()
 {
 case "$line" in
 
 *\ Linux\ command\ line\ *)
-	send "";;
+	send "$KOPT";;
 
 *Enter\ the\ items\ you\ want\ to\ select,\ *)
 	devs=""
@@ -83,4 +87,12 @@ esac
 }
 
 callback grubhack apt-get -yq install grub-pc
+
+# Missing links
+# See http://juerd.nl/site.plp/debianraid
+#	Set FSCKFIX=yes in /etc/default/rcS
+# dpkg-reconfigure locales
+# dpkg-reconfigure tzdata
+#
+# pool.ntp.org
 
