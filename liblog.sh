@@ -9,18 +9,19 @@ now()
 NOW="`date +%Y%m%d-%H%M%S`"
 }
 
+rm -f TMP.log
 log()
 {
 echo "$*" >&2
+echo "$*" >> TMP.log
 }
 
 logf()
 {
 LOGFORMAT="$1"
-shift
+shift || WRONG logf "$*"
 now
-printf "%s $LOGFORMAT\\n" "$NOW" "$@" >&2
-printf "%s $LOGFORMAT\\n" "$NOW" "$@" >> SETUP.log
+printf "%s $LOGFORMAT\\n" "$NOW" "$@" | tee -a TMP.log SETUP.log >&2
 }
 
 logcalls()
@@ -58,7 +59,7 @@ printf B
 logsect()
 {
 LOGSECTORS="$1"
-shift
+shift || WRONG logsect "$*"
 logsize="`sizestring $[LOGSECTORS*2048]`"
 logf "%-20s %10d (%s)" "`printf "$@"`:" "$LOGSECTORS" "${logsize# }"
 }

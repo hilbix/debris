@@ -17,7 +17,7 @@ getvars()
 {
 getvarto="$1"
 getvarfrom="$2"
-shift 2 || OOPS "wrong number of arguments: getvars $*"
+shift 2 || WRONG getvars "$*"
 for xset
 do
 	getvar $getvarto$xset $getvarfrom$xset
@@ -31,13 +31,19 @@ setvar()
 eval $1=\"\$2\"
 }
 
+logvar()
+{
+setvar "$@"
+logf "set %20s = %s" "$@"
+}
+
 # Initialize variables: VAR$suffix1=VAL VAR$suffix2=VAL ...
 # Args: VAR VAL SUFFIX...
 setvars()
 {
 setvarto="$1"
 setvarval="$2"
-shift 2 || OOPS "wrong number of arguments: setvars $*"
+shift 2 || WRONG setvars "$*"
 for xset
 do
 	setvar $setvarto$xset "$setvarval"

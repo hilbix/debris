@@ -9,8 +9,8 @@
 
 HOST()
 {
-HOSTNAME="${1%%.*}"
-DOMAINNAME="${1#*.}"
+logvar HOSTNAME   "${1%%.*}"
+logvar DOMAINNAME "${1#*.}"
 }
 
 # CONNECTION type
@@ -18,8 +18,34 @@ DOMAINNAME="${1#*.}"
 CONN()
 {
 CONNECTIONTYPE="$1"
-shift
+shift || WRONG CONN "$*"
 CONNECTIONARGS="$*"
+}
+
+ARCH()
+{
+logvar ARCH    "${1:-i386}"
+logvar RELEASE "${2:-squeeze}"
+logvar BASE    "${3:-minbase}"
+logvar MIRROR  "${4:-http://cdn.debian.net/debian/}"
+}
+
+KERN()
+{
+logvar KERN "$@"
+}
+
+PACK()
+{
+logvar PACKAGES "$*"
+}
+
+PROXY=
+proxyline=
+PROXY()
+{
+logvar PROXY "$@"
+proxyline="export http_proxy=$1"
 }
 
 DISKS=""
@@ -28,7 +54,7 @@ DISK()
 {
 let DISKNUMBER++
 DISKS="$DISKS $DISKNUMBER"
-
+logvar DISK$DISKNUMBER $*
 }
 
 PARTITIONS=""
@@ -37,11 +63,11 @@ PART()
 {
 let PARTNUMBER++
 PARTITIONS="$PARTITIONS $PARTNUMBER"
-setvar PART${PARTNUMBER}NAME "$1"
+logvar PART${PARTNUMBER}NAME "$1"
 setvar PART_$1 $PARTNUMBER
-setvar PART${PARTNUMBER}SIZE "$2"
-shift
-setvar PART${PARTNUMBER}FLAG "$*"
+logvar PART${PARTNUMBER}SIZE "$2"
+shift 2 || WRONG PART "$*"
+logvar PART${PARTNUMBER}FLAG "$*"
 }
 
 FILESYSTEMS=""
@@ -52,15 +78,15 @@ FS()
 let FSNUMBER++
 FILESYSTEMS="$FILESYSTEMS $FSNUMBER"
 
-setvar FS${FSNUMBER}BASE $1
+logvar FS${FSNUMBER}BASE $1
 
 case "$2" in
-/*)	setvar FS${FSNUMBER}TYPE ext4;;
-*)	shift; setvar FS${FSNUMBER}TYPE $1;;
+/*)	logvar FS${FSNUMBER}TYPE ext4;;
+*)	shift; logvar FS${FSNUMBER}TYPE $1;;
 esac
 
-setvar FS${FSNUMBER}PATH $2
-setvar FS${FSNUMBER}SIZE "$2"
+logvar FS${FSNUMBER}PATH $2
+logvar FS${FSNUMBER}SIZE "$3"
 }
 
 . "./$MACHINE.debris"

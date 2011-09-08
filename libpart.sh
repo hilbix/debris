@@ -140,18 +140,22 @@ setvar DEV$dev$1 "$old$2"
 # Roll back any previous run.  Bring everything to a clean start.
 partstep0()
 {
+call ok killall -9 mdadm cron exim4
 piped cat /proc/mounts |
-grep ' /ins/' |
-while read -r fs rest
+grep ' /ins' |
+while read -r fs dir rest
 do
-	call ok umount "$fs"
+	call ok umount "$dir"
 done
-piped mdadm --detail --scan |
-while read -r array dev uid
-do
-	call ok umount "$dev"
-	call mdadm --stop "$dev"
-done
+call mdadm --stop --scan
+#piped ok mdadm --detail --scan |
+#{
+#while read -r array dev uid
+#do
+#	call ok umount "$dev"
+#	call mdadm --stop "$dev"
+#done
+#} || OOPS "partstep0 cleanup failed"
 }
 
 ########################################################################
@@ -183,7 +187,7 @@ logsect $MINSIZE 'usable sector count'
 # sets total (number of free sectors)
 partstep2()
 {
-total=MINSIZE
+let total=MINSIZE
 restpart=
 for p in $PARTITIONS
 do
@@ -204,7 +208,7 @@ done
 
 ########################################################################
 
-# Calculate the % partitions (rounded up)
+# Calculate the % partitions (rounded down)
 # updates total
 partstep3()
 {
@@ -213,11 +217,12 @@ for p in $PARTITIONS
 do
 	getpart $p
 	case "$partSIZE" in
-	*%)	;;
+	*%%)	permille="${partSIZE%\%%}000";;
+	*%)	permille="${partSIZE%\%}0000";;
 	*)	continue;;
 	esac
 
-	let sects="((total*${partSIZE%\%}+99)/100+SECTORALIGN-1)/SECTORALIGN"
+	let sects="(total*permille)/1000000/SECTORALIGN"
 	let sects*=SECTORALIGN
 	let PART${p}SECT=sects
 	let sum+=sects
@@ -358,6 +363,7 @@ CMDmkpart()
 {
 getpart $devPART
 CMDparted mkpart $devFLAG ${partSTART}s ${partEND}s
+call mdadm --stop --scan
 call ok mdadm --zero-superblock $diskDEV$devDEV
 call dd if=/dev/zero of=$diskDEV$devDEV bs=32768 count=2
 partflag $partFLAG
@@ -368,7 +374,7 @@ partflag()
 while	[ 0 != "$#" ]
 do
 	flag="$1"
-	shift || OOPS "internal error"
+	shift || INTERN partflag
 
 	case "$flag" in
 	crypt)	#
@@ -395,7 +401,7 @@ done
 # So all have --metadata=0 to shut up mdadm
 CMDmkmd()
 {
-call mdadm --create $devNAME --level=1 --metadata=0 --raid-devices=`wordcount $devDEV` $devDEV
+call mdadm --create /dev/md/$devNAME --level=1 --metadata=0 --raid-devices=`wordcount $devDEV` $devDEV
 # process remaining FLAGs
 }
 

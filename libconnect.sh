@@ -9,23 +9,23 @@
 
 conn_ssh()
 {
-ptybuffer -cfo DEBUG.log .sock ssh -acxqe none "$@" ./run.sh
+build/ptybuffer -cfo DEBUG.log .sock ssh -acxqe none "$@" ./run.sh
 }
 
 conn_local()
 {
-ptybuffer -cfo DEBUG.log .sock ./run.sh
+build/ptybuffer -cfo DEBUG.log .sock ./run.sh
 }
 
 # Fork off new script, killing the old one, just in case
 while	conn_$CONNECTIONTYPE $CONNECTIONARGS
 	[ 42 = $? ]
 do
-	timeout 2 ptybufferconnect -qnp bye .sock
-	timeout 2 ptybufferconnect -qnp "$EOF" .sock
-	timeout 2 ptybufferconnect -qnp "$INTR" .sock
+	timeout 2 build/ptybufferconnect -qnp bye .sock
+	timeout 2 build/ptybufferconnect -qnp "$EOF" .sock
+	timeout 2 build/ptybufferconnect -qnp "$INTR" .sock
 done
 
-exec 3< <(ptybufferconnect -n .sock) || OOPS "cannot connect to input socket"
+exec 3< <(build/ptybufferconnect -n .sock) || OOPS "cannot connect to input socket"
 exec 4> >(socat - unix:.sock) || OOPS "cannot connect to output socket"
 

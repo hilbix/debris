@@ -1,5 +1,7 @@
 DEBUG.log
 SETUP.log
+TMP.log
 *~
 OLD/
 TEST.debris
+build/

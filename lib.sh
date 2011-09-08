@@ -32,6 +32,10 @@ then
 . ./libio.sh
 . ./libpart.sh
 
+# Build missing tools
+# This step shall vanish in future
+. ./libbuild.sh
+
 # Read in the machine definition file ($MACHINE.debris)
 # $MACHINE defaults to "$1" which defaults to "TEST".
 . ./libmachine.sh

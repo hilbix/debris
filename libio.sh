@@ -12,6 +12,7 @@ last="${*%$CR}"
 lastfirst="$1"
 lasttag="$2"
 lastcode="${3%$CR}"
+lastrealcode="${4%$CR}"
 [ -n "$last" ] || return 0
 lastline="$*"
 log "got $lastline"
@@ -29,7 +30,7 @@ read -r$1 line <&3 && setlast $line
 send()
 {
 logf "SEND %s" "$*"
-ptybufferconnect -eqnp "$*" .sock
+build/ptybufferconnect -eqnp "$*" .sock
 }
 
 # Args: TAG_to_wait_for [getline_option]
@@ -46,6 +47,7 @@ do
 		output="${output#$LF}"
 		return
 	fi
+	[ -z "$WAITFORCALLBACK" ] || $WAITFORCALLBACK "$last"
 	[ -n "$last" ] &&
 	output="$output
 $last"
@@ -60,6 +62,7 @@ calls=0
 # Args: "command to send" [command to log]
 sendcmd()
 {
+WAITFORCALLBACK=
 waitfor "###PROMPT###" t30
 
 let calls++
@@ -78,6 +81,11 @@ sendcmd "run $*"
 waitfor "###RUN###" t30
 }
 
+resok()
+{
+assert 0 "$lastcode" ", command return error, last output: $output"
+}
+
 # Args: $calls "$lasttag"
 # Wait for the result.
 # Remember the output in CALLOUT$callnr
@@ -88,8 +96,8 @@ result()
 [ 2 = "$#" ] || OOPS "wrong number of arguments: result $*"
 
 waitfor "###RES###"
-assert "$2" "$lasttag"
-assert 0 "$lastcode"
+assert "$2" "$lasttag" "(chain of command out of sync)"
+resok
 setvar CALLOUT$1 "$output"
 }
 
@@ -98,6 +106,16 @@ setvar CALLOUT$1 "$output"
 call()
 {
 invoke "$@"
+result $calls "$lasttag"
+}
+
+# Args callbackfn rest see sendcmd
+callback()
+{
+CALLBACKCMD="$1"
+shift || WRONG callback "$*"
+invoke "$@"
+WAITFORCALLBACK="$CALLBACKCMD"
 result $calls "$lasttag"
 }
 
@@ -115,7 +133,7 @@ setvar CALLT$callstack "$lasttag"
 lastcallsubtag="$lasttag"
 
 waitfor "###RES###"
-assert 0 "$lastcode"
+resok
 # Check that the ID changed, such that we are sure another ./run.sh runs.
 unassert "$lastcallsubtag" "$lasttag" "callsub did not work, command returned"
 }
@@ -135,7 +153,7 @@ let callstack--
 pullvar()
 {
 VAR="$1"
-shift
+shift || WRONG pullvar "$*"
 call "$@"
 setvar GET$VAR "$output"
 log "GET$VAR set to '$output'"
@@ -147,7 +165,15 @@ log "GET$VAR set to '$output'"
 piped()
 {
 call "$@"
-log "piped '$output'"
+case "$output" in
+'')	log "piped (nothing)"
+	return 0
+	;;
+*$LF*)	log "piped <<<<<<<<<<
+$output
+>>>>>>>>>>";;
+*)	log "piped <$output>";;
+esac
 echo "$output"
 }
 
@@ -160,7 +186,7 @@ sendcmd copy "copy $*"
 waitfor "###COPY###" t30
 
 # Stdin is not yet supported by ptybufferconnect
-uuencode "$1" "$2" | socat - unix:.sock
+uuencode "$@" | socat - unix:.sock
 
 result $calls "$lasttag"
 }
