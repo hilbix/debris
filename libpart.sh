@@ -381,7 +381,7 @@ do
 		return
 		;;
 
-	*)	CMDparted set $devDEV "$flag" on;;
+	*)	CMDparted set $devPART "$flag" on;;
 	esac
 
 	case "$flag" in
@@ -403,6 +403,7 @@ CMDmkmd()
 {
 call mdadm --create /dev/md/$devNAME --level=1 --metadata=0 --raid-devices=`wordcount $devDEV` $devDEV
 # process remaining FLAGs
+partflag $devFLAG
 }
 
 ########################################################################
