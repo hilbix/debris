@@ -1,7 +1,7 @@
 # Makefile automatically generated, do not edit!
 # This output (only this Makefile) is Public Domain.
 #
-#@MD5TINOIGN@ Creation date: Sat Mar  4 20:47:31 CET 2017
+#@MD5TINOIGN@ Creation date: Sat Mar  4 22:37:40 CET 2017
 #
 # This file is based on following files:
 #@MD5TINOIGN@ 1: Makefile.tino
@@ -168,5 +168,9 @@ $(PROG1):	$(PROG1).o $(OBJS) $(LIBS)
 # compiler generated dependencies, remove if incorrect
 
 # included: debris.d
-$(PROG1).o:
+$(PROG1).o:  debris.c tino/alloc.h tino/err.h tino/fatal.h tino/ex.h \
+ tino/arg.h tino/debug.h tino/sysfix.h tino/sysfix_cygwin.h \
+ tino/sysfix_diet.h tino/sysfix_linux.h tino/sysfix_osx.h \
+ debris_version.h debris.h help.h
+
 # end
