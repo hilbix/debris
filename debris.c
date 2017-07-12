@@ -16,8 +16,38 @@ struct commands
   {
     const char	*help, *desc, *name;
     void	(*fn)(DEBRIS *, int, const char * const *);
-    int		minargs, maxargs, deferred;
+    int		cmd_nr, minargs, maxargs, deferred;
   };
+
+static void
+verr(DEBRIS *D, const char *s, va_list list)
+{
+  xDP(("(%s)", s));
+  fprintf(stderr, "error: ");
+  vfprintf(stderr, s, list);
+  fprintf(stderr, "\n");
+  va_end(list);
+
+  D->status = 1;
+}
+
+static void
+err(DEBRIS *D, const char *s, ...)
+{
+  va_list	list;
+
+  xDP(("(%s)", s));
+  va_start(list, s);
+  verr(D, s, list);
+  va_end(list);
+}
+
+static void
+notyet(DEBRIS *D, const char *what)
+{
+  err(D, "not yet implemented: %s", what);
+  exit(1);
+}
 
 #define	DEFINE	enum
 #include "debris.h"
@@ -32,22 +62,6 @@ struct commands
 #include "debris.h"
 
 static void
-err(DEBRIS *D, const char *s, ...)
-{
-  va_list	list;
-
-  xDP(("(%s)", s));
-  va_start(list, s);
-  fprintf(stderr, "error: ");
-  vfprintf(stderr, s, list);
-  fprintf(stderr, "\n");
-  va_end(list);
-
-  D->status = 1;
-  return;
-}
-
-void
 run(DEBRIS *D, int n, const char * const *argv)
 {
   struct commands *ptr;
@@ -67,10 +81,10 @@ run(DEBRIS *D, int n, const char * const *argv)
   err(D, "command not found: %s (try: help)", argv[0]);
 }
 
-void
+static void
 interactive(DEBRIS *D)
 {
-  exit(1);
+  notyet(D, "interactive");
 }
 
 int

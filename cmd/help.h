@@ -1,6 +1,6 @@
 SHORT("[command]")
 HELP("shows help of command")
-IMMEDIATE(help, 0, 1)
+CMD(help, 0, 1)
 #if CODE
 {
   struct commands	*ptr;
