@@ -46,7 +46,6 @@ static void
 notyet(DEBRIS *D, const char *what)
 {
   err(D, "not yet implemented: %s", what);
-  exit(1);
 }
 
 #define	DEFINE	enum
