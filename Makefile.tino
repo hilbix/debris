@@ -34,7 +34,7 @@ ADD_LDFLAGS=
  ADD_LDLIBS=
       CLEAN=
   CLEANDIRS=
-  DISTCLEAN=
+  DISTCLEAN=cmd.h
    TINOCOPY=
 #    TINOINC=tino_common.h
 #    TINOLIB=tino/lib.h
@@ -50,6 +50,8 @@ ADD_LDFLAGS=
 
 Makefile::
 	$(MAKE) -C tino tino HERE="$(PWD)"
+
+debris.o:	cmd.h
 
 cmd.h:	cmd.sh Makefile cmd/*.h
 	./cmd.sh

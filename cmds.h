@@ -8,7 +8,7 @@
  * enum     -> enum { DEBRIS_FN_cmd,.. };
  * declare  -> void cmd(DEBRIS *D, int args, **argv);..
  * commands -> struct commands [] { { cmd, "cmd", DEBRIS_FN_cmd, SHORT, HELP+lf, minargs, maxargs, immediate}.. {0}};
- * code     -> void cmd(DEBRIS *D, int args, **argv) CODE;
+ * code     -> void cmd(..) CODE;
  *
  * The commands below cmd/name.h must look like:
  *
