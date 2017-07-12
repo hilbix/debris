@@ -5,3 +5,4 @@
  */
 
 #include "cmd/help.h"
+#include "cmd/ls.h"

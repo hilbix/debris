@@ -1,7 +1,7 @@
 # Makefile automatically generated, do not edit!
 # This output (only this Makefile) is Public Domain.
 #
-#@MD5TINOIGN@ Creation date: Wed Jul 12 14:47:33 CEST 2017
+#@MD5TINOIGN@ Creation date: Wed Jul 12 14:53:30 CEST 2017
 #
 # This file is based on following files:
 #@MD5TINOIGN@ 1: Makefile.tino
@@ -172,7 +172,7 @@ $(PROG1).o:  debris.c debris_interactive.h debris.h debris_interactive.c \
  libdebris.c tino/dirty.h tino/alloc.h tino/err.h tino/fatal.h tino/ex.h \
  tino/arg.h tino/debug.h tino/sysfix.h tino/sysfix_cygwin.h \
  tino/sysfix_diet.h tino/sysfix_linux.h tino/sysfix_osx.h \
- debris_version.h cmds.h cmd.h cmd/help.h
+ debris_version.h cmds.h cmd.h cmd/help.h cmd/ls.h
 
 
 #@MD5TINOIGN@ rules from: Makefile.tino
