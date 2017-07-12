@@ -41,7 +41,7 @@
 
 DD5
 
-#include "help.h"
+#include "cmd.h"
 
 DD6
 #undef	DEFINE

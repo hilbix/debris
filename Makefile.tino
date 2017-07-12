@@ -50,3 +50,7 @@ ADD_LDFLAGS=
 
 Makefile::
 	$(MAKE) -C tino tino HERE="$(PWD)"
+
+cmd.h:	cmd.sh Makefile cmd/*.h
+	./cmd.sh
+
