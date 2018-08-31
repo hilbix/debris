@@ -1,0 +1,5 @@
+/*.d
+/*.o
+/debris
+/debris_version.h
+diet.distignore~
