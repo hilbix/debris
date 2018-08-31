@@ -1,3 +1,18 @@
 DEBian Remote Install Service
 
-This is the missing link to do what the name says with all those already existing things.
+Shell helper to transparently run commands on a remote system.
+
+The only requirements are:
+
+- On the remote, there must be running something like a
+  very minimal Debian system with all needed tools.
+
+- Run DebRIS on the remote
+
+- Define how the local DebRIS reaches the remote DebRIS.
+
+
+Then you can run commands transparantly to the remote, just by typing "debris " (without the qotes) in front of the command.  DebRIS also supports crossing a "sudo" or "chroot" barrier easlily.
+
+Command list see: ./debris help
+
