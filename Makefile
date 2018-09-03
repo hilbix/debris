@@ -1,7 +1,7 @@
 # Makefile automatically generated, do not edit!
 # This output (only this Makefile) is Public Domain.
 #
-#@MD5TINOIGN@ Creation date: Fri Aug 31 11:18:15 CEST 2018
+#@MD5TINOIGN@ Creation date: Mon Sep  3 08:41:22 CEST 2018
 #
 # This file is based on following files:
 #@MD5TINOIGN@ 1: Makefile.tino
@@ -173,6 +173,7 @@ $(PROG1).o:  debris.c tino/dirty.h tino/file.h tino/sysfix.h \
  tino/sysfix_osx.h tino/type.h tino/filetool.h tino/file.h tino/fatal.h \
  tino/ex.h tino/arg.h tino/alloc.h tino/err.h tino/debug.h tino/str.h \
  tino/fatal.h tino/buf_line.h tino/buf.h tino/codec.h tino/strargs.h \
- tino/strprintf.h tino/put.h tino/io.h tino/hash.h tino/hasher.h cmd.h
+ tino/strprintf.h tino/put.h tino/io.h tino/hash.h tino/hasher.h \
+ tino/hash.h cmd.h
 
 # end
