@@ -28,13 +28,22 @@
 
 #define H(NAME,HELP)			DEBRIS_TOPIC(#NAME, HELP)
 
-V(1, prompt,	"[{$prefix}]{$loc}@{$name}:{#dir}$ ",	"DebRIS prompt")
+V(1, prompt,	"[{=prefix}]{=loc}@{=name}:{@=dir}$ ",	"DebRIS prompt")
 V(0, prefix,	"DebRIS",				"DebRIS prompt prefix")
-V(0, name,	"{=hostname}",				"DebRIS name")
-V(0, loc,	"{=getpid}",				"DebRIS location")
-V(1, dir,	"{=cwd}",				"DebRIS directory")
+V(0, name,	"{hostname}",				"DebRIS name")
+V(0, loc,	"{getpid}",				"DebRIS location")
+V(1, dir,	"{cwd}",				"DebRIS directory")
+V(1, version,	DEBRIS_VERSION,				"DebRIS version")
 V(0, sep,	"\t",					"separator for echo")
 V(1, err,	"",					"automatic error variable (error string of last command)")
+
+H(usage, "{arg0} 'command'..\n\
+")
+H(expr, "\\{expr\\}\n\
+	=VAR	Access a DebRIS variable, shortcut for: var VAR\n\
+	$ENV	Environment variable, shortcut for: env ENV\n\
+	FN arg	call a DebRIS function with given args, returns the output\n\
+")
 
 C(exit, 0,1, "[n]", "exit DebRIS with given return code, default: 0",
 {
@@ -45,8 +54,6 @@ C(exit, 0,1, "[n]", "exit DebRIS with given return code, default: 0",
   return 0;
 })
 
-H(usage, "{arg0} 'command'..\n"
-  "")
 C(help, 0, 2, "[command] | help [topic]", "explain command or topic",
 {
   const struct _debris_cmd	*cmd;
@@ -123,7 +130,7 @@ C(print, 0, -1, "[args..]", "evaluate arguments and print them, without sparator
       outsep(D, NULL);
       e	= EXPR(eval)(D, *args++);
       outesc(D, EXPR(str)(e));
-      expr_free(e);
+      EXPR(free)(e);
     }
   return 0;
 })
@@ -144,7 +151,7 @@ tino_str_printf("%ld", (long)getpid()));
 C(set, 0, -1, "var[=value]..", "set a DebRIS variable to a static value\n"
   "If =value is missing, some default value is used",
 {
-  int	unset	= D->currentcmd->fn==cmd_unset;
+  int	unset	= D->currentcmd->fn==CMD(unset);
 
   while (*args)
     {
@@ -169,7 +176,7 @@ C(set, 0, -1, "var[=value]..", "set a DebRIS variable to a static value\n"
 C(unset, 0, -1, "var[=expr]..",  "unset a DebRIS variable or make it automatic\n"
   "Predefined variables get their default/automatic value, others are unset",
 {
-  return cmd_set(D, args);
+  return CMD(set)(D, args);
 })
 
 #if 0
