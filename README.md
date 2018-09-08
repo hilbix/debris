@@ -89,7 +89,7 @@ Do not forget to quote the command and it's arguments.  You can do the usual bac
 
 outputs the command list 4 times!  Why?  Because the commands were not quoted.  The correct way would be:
 
-	DEBRIS="{help help}" ./debris 'help help'
+	DEBRIS="(help help)" ./debris 'help help'
 
 This outputs the help for the help two times.  Quoting and escapes follow the usual shell way, but you also have to think about the shell itself, wich adds another layer of quoting.  You already know this from `ssh`, right?  If you want to invoke a `command with spaces` on the remote, you cannot do `ssh remote: 'command with spaces' arg1 arg2` as this runs `'command' with spaces arg1 arg2` instead of `'command with spaces' arg1 arg2`.  So you must enter `ssh remote: "'command with spaces' arg1 arg2"`.  This gets difficult, if you want to do `ssh remote: "command '$VAR'" when `VAR` might contain single quotes, too.  The usual workaround is `ssh remote: "$(printf ' %q' command args..)"` which assumes you are using `bash` on both sides.  Sigh.
 
