@@ -33,6 +33,8 @@
 #include "tino/print.h"
 #include "tino/hash.h"
 
+#include "debris_version.h"
+
 /************************************************************************/
 /* DebRIS structures							*/
 /************************************************************************/
@@ -291,7 +293,7 @@ debris_init(DEBRIS, int argc, const char * const *argv)
   FATAL(argv[argc]);
   while (argc)
     FATAL(!argv[--argc]);
-  D->interactive= -1;
+  D->interactive= -1;		/* automatic	*/
   D->_rd	= tino_io_fd(0, "(stdin)");
   D->_wr	= tino_io_fd(1, "(stdout)");
   D->_ex	= tino_io_fd(2, "(stderr)");
@@ -352,6 +354,53 @@ debris_set_err(DEBRIS, const char *err)
 {
   return D->lasterr = debris_set(D, 0, "err", err)->val;
 }
+
+/************************************************************************/
+/* DebRIS expression handler						*/
+/************************************************************************/
+/* Expressions can be given in strings as '{expr}'
+ */
+
+struct debris_expr
+  {
+    DEBRIS;
+    TINO_BUF	buf;
+  };
+
+static struct debris_expr *
+EXPR(eval)(DEBRIS, const char *expr)
+{
+  struct debris_expr	*e;
+
+  e	= tino_alloc0O(sizeof *e);
+  out_push_buf(&e->buf);
+  000;
+  tino_buf_add_sO(&e->buf, expr);
+  000;
+  out_pop_buf(&e->buf);
+  return e;
+}
+
+static const char *
+EXPR(str)(struct debris_expr *expr)
+{
+  return tino_buf_get_sN(&expr->buf);
+}
+
+#define	debris_expr_free(VAR)	EXPR(FREE)(&VAR)
+
+static const char *
+EXPR(FREE)(struct debris_expr **ptr)
+{
+  struct debris_expr *expr;
+
+  FATAL(!ptr);
+  expr	= *ptr;
+  FATAL(!expr);
+  tino_buf_free(&e->buf);
+  TINO_FREE_NULL(*ptr);
+}
+
 
 /************************************************************************/
 /* DebRIS command parser						*/
