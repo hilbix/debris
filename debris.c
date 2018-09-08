@@ -12,8 +12,16 @@
  * - Then commandline is parsed (each arg is a command).
  * - If still no command was present, commands are read from stdin until EOF.
  *
- * For all commands see "help"
+ * For all commands see "help", for more info see "help help"
  */
+
+#ifndef	CMD
+#define	CMD(NAME)	debris_cmd_##NAME
+#endif
+
+#ifndef	EXPR
+#define	EXPR(NAME)	debris_expr_##NAME
+#endif
 
 #include "tino/dirty.h"
 #include "tino/file.h"
@@ -22,7 +30,12 @@
 #include "tino/buf_line.h"
 #include "tino/strargs.h"
 #include "tino/put.h"
+#include "tino/print.h"
 #include "tino/hash.h"
+
+/************************************************************************/
+/* DebRIS structures							*/
+/************************************************************************/
 
 #define	DEBRIS	struct _debris *D
 
@@ -37,10 +50,11 @@ struct _debris
 
     int			interactive;	/* do we interact with stdin	*/
 
-    tino_hash_map	cmds, vars;
+    tino_hash_map	map_cmd, map_var, map_topic;
     int			cmdmaxwidth;
 
-    struct _debris_cmd	*now;
+    struct _debris_cmd	*currentcmd;	/* pointer to current command	*/
+    const char		*lasterr;	/* value of last error		*/
   };
 
 struct _debris_cmd
@@ -60,27 +74,21 @@ struct _debris_var
     const char	*help;		/* if set, this variable is automatic	*/
   };
 
-static const char *
-call(DEBRIS, const char *(*fn)(DEBRIS, char **args), int min, int max, va_list list)
-{
-  tino_str_args	args;
-  const char	*ret;
-  int		i;
+struct _debris_topic
+  {
+    const char	*name;
+    const char	*help;
+  };
 
-  tino_str_args_init(&args, "");
-  for (i=0; tino_str_args_add(&args, tino_strdupN(va_arg(list, char *))); i++);
-  if (i<min)
-    return "too few arguments to call";
-  if (max>=min && i>max)
-    return "too many arguments to call";
+/************************************************************************/
+/* DebRIS HASH wrappers							*/
+/************************************************************************/
 
-  ret	= fn(D, args.argv);
-  tino_str_args_free(&args);
-  return ret;
-}
-
+/* Return a hash bucket, indexed by NAME.
+ * create!=0 NUL-allocates a structure of length given in create.
+ */
 static void *
-debris_hash(DEBRIS, tino_hash_map *h, const char *name, size_t create)
+_debris_hash(DEBRIS, tino_hash_map *h, const char *name, size_t create)
 {
   tino_hash_map_val	*v;
 
@@ -102,113 +110,60 @@ debris_hash(DEBRIS, tino_hash_map *h, const char *name, size_t create)
   return v->raw.ptr;
 }
 
-static struct _debris_cmd *
-debris_cmd(DEBRIS, const char *name, int create)
+/* Standard function to deal with HASH type:
+ *
+ * debris_TYPE(D, name, BOOL create) -> struct _debris_type * (or NULL if missing and !create)
+ * debris_add_TYPE(D, NAME, ..., help) -> add NAME to given TYPE, NAME must not exist
+ */
+#define	DEBRIS_MAP(TYPE,...)								\
+        static struct _debris_##TYPE *							\
+        debris_##TYPE(DEBRIS, const char *name, int create)				\
+        {										\
+          struct _debris_##TYPE *TYPE;							\
+\
+          TYPE	= _debris_hash(D, &D->map_##TYPE, name, create ? sizeof *TYPE : 0);	\
+          if (!create)									\
+            return TYPE;								\
+          FATAL(!TYPE);									\
+          return TYPE;									\
+        }										\
+\
+        static void									\
+        debris_add_##TYPE(DEBRIS, const char *name, ##__VA_ARGS__, const char *help)	\
+        {										\
+          struct _debris_##TYPE	*ptr;							\
+\
+          ptr		= debris_##TYPE(D, name, 1);					\
+          FATAL(ptr->name);								\
+          ptr->name	= tino_strdupO(name);						\
+          ptr->help	= tino_strdupN(help);						\
+          DEBRIS_CODE
+#define	DEBRIS_CODE(C)	C }
+
+#define	DEBRIS_CMD_FN(X)	const char *(X)(DEBRIS, char **args)
+
+DEBRIS_MAP(cmd, DEBRIS_CMD_FN(*fn), int min, int max, const char *usage)(
 {
-  struct _debris_cmd *c;
+  int	w;
 
-  c	= debris_hash(D, &D->cmds, name, create ? sizeof *c : 0);
-  FATAL(create && !c);
-  return c;
-}
-
-static struct _debris_var *
-debris_var(DEBRIS, const char *name, int create)
-{
-  struct _debris_var	*v;
-
-  v	= debris_hash(D, &D->vars, name, create ? sizeof *v : 0);
-  if (!create)
-    return v;
-  FATAL(!v);
-  return v;
-}
-
-static const struct _debris_var *
-debris_set(DEBRIS, int unset, const char *name, const char *val)
-{
-  struct _debris_var	*v;
-
-  FATAL(!name || !*name);
-  v	= debris_var(D, name, !unset);
-  if (!v)
-    {
-      FATAL(!unset);
-      return v;
-    }
-  v->val	= val;
-  return v;
-}
-
-#define	DEBRIS_CMD(X)	const char *(X)(DEBRIS, char **args)
-
-#define	DEBRIS_CNAME(X)	static DEBRIS_CMD(cmd_##X);
-#define	DEBRIS_CALL(X,Y,Z)	static const char *call_##X(DEBRIS, ...) { va_list list; va_start(list, D); const char *s=call(D, cmd_##X, Y, Z, list); va_end(list); return s; }
-#include "cmd.h"
-
-static void
-debris_add_cmd(DEBRIS, DEBRIS_CMD(*fn), const char *name, int min, int max, const char *usage, const char *help)
-{
-  struct _debris_cmd	*c;
-  int			w;
-
-  c		= debris_cmd(D, name, 1);
-  c->fn		= fn;
-  c->name	= tino_strdupO(name);
-  c->min	= min;
-  c->max	= max;
-  c->usage	= tino_strdupN(usage);
-  c->help	= tino_strdupN(help);
+  ptr->min	= min;
+  ptr->max	= max;
+  ptr->usage	= tino_strdupN(usage);
   w	= strlen(name)+strlen(usage);
   if (w>=D->cmdmaxwidth)
     D->cmdmaxwidth	= w+1;
-}
+})
 
-static void
-debris_add_var(DEBRIS, const char *name, int mode, const char *def, const char *help)
-{
-  struct _debris_var	*v;
+DEBRIS_MAP(var, int mode, const char *def)(
+  ptr->mode	= mode;
+  ptr->def	= def;
+)
 
-  v		= debris_var(D, name, 1);
-  v->mode	= mode;
-  v->def	= def;
-  v->help	= help;
-}
+DEBRIS_MAP(topic)();
 
-static void
-debris_init(DEBRIS, int argc, const char * const *argv)
-{
-  tino_buf_initO(&D->in);
-
-  D->arg0dir	= tino_file_dirname_allocO(argv[0]);
-  D->arg0	= tino_file_filename_allocO(argv[0]);
-  D->cmdline	= argv+1;
-  FATAL(argv[argc]);
-  while (argc)
-    FATAL(!argv[--argc]);
-  D->interactive= -1;
-  D->_rd	= tino_io_fd(0, "(stdin)");
-  D->_wr	= tino_io_fd(1, "(stdout)");
-  D->_ex	= tino_io_fd(2, "(stderr)");
-
-  /* This could be optimizied by pre-compiling a perfect hashmap.
-   * XXX TODO XXX future optimization: Move effort to compile time.
-   */
-  tino_hash_map_init(&D->cmds, 100, 1);
-  tino_hash_map_init(&D->vars, 1000, 2);
-
-#define	DEBRIS_CADD(...)	debris_add_cmd(D, __VA_ARGS__);
-#define	DEBRIS_VADD(...)	debris_add_var(D, __VA_ARGS__);
-#include "cmd.h"
-}
-
-static void
-debris_free(DEBRIS)
-{
-  tino_free_constO(D->arg0);
-  tino_free_constO(D->arg0dir);
-  /* rest of deinit?	*/
-}
+/************************************************************************/
+/* Output processing functions						*/
+/************************************************************************/
 
 static const char *
 outx(DEBRIS)
@@ -269,21 +224,146 @@ outesc(DEBRIS, const char *s)
   return outbuf(D, s, strlen(s));
 }
 
-static int
-debris_exit(DEBRIS)
+static const char *
+outp(DEBRIS, const char *format, ...)
 {
-  int	code;
+  static struct tino_print_ctx	ctx;
+  tino_va_list			list;
 
-  code	= D->end & 0xff;
-  debris_free(D);
-  return code;
+  tino_va_start(list, format);
+  tino_print(tino_print_ctx_io(&ctx, D->_wr), "%v", list);
+  tino_va_end(list);
+  return 0;
 }
 
+/************************************************************************/
+/* CALL feature (call DebRIS commands from C)				*/
+/************************************************************************/
+
+/* Build argument list from variadic C function call, and then call the DebRIS FN.
+ * All parameters are strings.  min/max are the MIN/MAX number of parameters from the wrapper.
+ */
+static const char *
+_debris_call(DEBRIS, const char *(*fn)(DEBRIS, char **args), int min, int max, va_list list)
+{
+  tino_str_args	args;
+  const char	*ret;
+  int		i;
+
+  tino_str_args_init(&args, "");
+  for (i=0; tino_str_args_add(&args, tino_strdupN(va_arg(list, char *))); i++);
+  if (i<min)
+    return "too few arguments to call";
+  if (max>=min && i>max)
+    return "too many arguments to call";
+
+  ret	= fn(D, args.argv);
+  tino_str_args_free(&args);
+  return ret;
+}
+
+/* Build up the wrappers.  For each DebRIS command
+ *	CMD(NAME)
+ * there is a
+ *	debris_call_NAME(D, args, NULL)
+ * which allows to easily call the given command directly.
+ */
+#define	DEBRIS_CNAME(X)	static DEBRIS_CMD_FN(CMD(X));
+#define	DEBRIS_CALL(X,Y,Z)	static const char *debris_call_##X(DEBRIS, ...) { va_list list; va_start(list, D); const char *s=_debris_call(D, CMD(X), Y, Z, list); va_end(list); return s; }
+#include "cmd.h"
+
+/************************************************************************/
+/* Initialize DebRIS structure						*/
+/************************************************************************/
+
+/* Initializator
+ *
+ * The DebRIS structure must be allocated before calling this.
+ */
+static void
+debris_init(DEBRIS, int argc, const char * const *argv)
+{
+  tino_buf_initO(&D->in);
+
+  D->arg0dir	= tino_file_dirname_allocO(argv[0]);
+  D->arg0	= tino_file_filename_allocO(argv[0]);
+  D->cmdline	= argv+1;
+  FATAL(argv[argc]);
+  while (argc)
+    FATAL(!argv[--argc]);
+  D->interactive= -1;
+  D->_rd	= tino_io_fd(0, "(stdin)");
+  D->_wr	= tino_io_fd(1, "(stdout)");
+  D->_ex	= tino_io_fd(2, "(stderr)");
+
+  /* This could be optimizied by pre-compiling a perfect hashmap.
+   * XXX TODO XXX future optimization: Move effort to compile time.
+   */
+  tino_hash_map_init(&D->map_cmd, 100, 1);
+  tino_hash_map_init(&D->map_var, 1000, 2);
+  tino_hash_map_init(&D->map_topic, 100, 3);
+
+#define	DEBRIS_CADD(...)	debris_add_cmd(D, __VA_ARGS__);
+#define	DEBRIS_VADD(...)	debris_add_var(D, __VA_ARGS__);
+#define	DEBRIS_TOPIC(...)	debris_add_topic(D, __VA_ARGS__);
+#include "cmd.h"
+}
+
+/* Deinitializator.
+ *
+ * The pointer can be freed afterwards.
+ *
+ * XXX TODO XXX fully implement this.  THIS IS A MEMORY LEAK TODAY.
+ */
+static void
+debris_free(DEBRIS)
+{
+  tino_free_constO(D->arg0);
+  tino_free_constO(D->arg0dir);
+  /* rest of deinit?	*/
+}
+
+/************************************************************************/
+/* DebRIS variables handling						*/
+/************************************************************************/
+
+/* Set a DebRIS variable
+ */
+static const struct _debris_var *
+debris_set(DEBRIS, int unset, const char *name, const char *val)
+{
+  struct _debris_var	*v;
+
+  FATAL(!name || !*name);
+  v	= debris_var(D, name, !unset);
+  if (!v)
+    {
+      FATAL(!unset);
+      return v;
+    }
+  tino_strsetN(&v->val, val);
+  return v;
+}
+
+/* Set the 'err' variable
+ */
+static const char *
+debris_set_err(DEBRIS, const char *err)
+{
+  return D->lasterr = debris_set(D, 0, "err", err)->val;
+}
+
+/************************************************************************/
+/* DebRIS command parser						*/
+/************************************************************************/
+
+/* XXX TODO XXX	*/
 static void
 debris_error(DEBRIS, const char *format, ...)
 {
   va_list	list;
 
+  outx(D);
   fflush(stdout);
   fflush(stderr);
   fprintf(stderr, "\nDebRIS ERROR: ");
@@ -294,12 +374,13 @@ debris_error(DEBRIS, const char *format, ...)
   fflush(stderr);
 }
 
+/* Run a DebRIS command which is broken up into arguments
+ */
 static void
 debris_command(DEBRIS, char **argv)
 {
   struct _debris_cmd	*cmd;
   int			cnt;
-  const char		*err;
 
   if (!argv) return;			/* ignore empty command list	*/
   for (cnt=0; argv[cnt]; cnt++);
@@ -317,14 +398,14 @@ debris_command(DEBRIS, char **argv)
   if (cmd->max>=cmd->min && cnt-1>cmd->max)
     return debris_error(D, "too many args to comand: %s %s", cmd->name, cmd->usage);
 
-  D->now	= cmd;
-  err		= cmd->fn(D, argv+1);
+  D->currentcmd	= cmd;
+  if (debris_set_err(D, cmd->fn(D, argv+1)))
+    return debris_error(D, "%s error: %s", cmd->name, D->lasterr);
   outx(D);
-  if (err)
-    return debris_error(D, "%s error: %s", cmd->name, err);
 }
 
-/* Parse input into arguments	*/
+/* Parse a full command string into arguments and then call it
+ */
 static void
 debris_parse(DEBRIS, const char *cmd)
 {
@@ -341,7 +422,10 @@ debris_parse(DEBRIS, const char *cmd)
   tino_str_args_free(&args);		/* cleanup	*/
 }
 
-/* Feed some line to the command parser	*/
+/* Feed a string to our parser.
+ * It is broken up into lines of full commands.
+ * We do not support continuation lines!
+ */
 static void
 debris_feed(DEBRIS, const char *data)
 {
@@ -364,10 +448,14 @@ debris_feed(DEBRIS, const char *data)
       cmd	= tino_buf_get_s_nonconstO(&D->in);
       cmd[pos]	= 0;
       tino_buf_advanceO(&D->in, pos+1);
+
       debris_parse(D, cmd);
     }
 }
 
+/* Feed a NULL terminated, commandline type stringlist to our parser.
+ * Each string is a full command.
+ */
 static void
 debris_feed_arglist(DEBRIS, char **args)
 {
@@ -380,8 +468,13 @@ debris_feed_arglist(DEBRIS, char **args)
      }
 }
 
+/* Feed a string with space separated commands to our parser.
+ * Use quotes and the escape character `\` to quote spaces etc.
+ * For convenience, `()` can be used as quotes like in (quoted).
+ * () is not recoursive.  use `\)` within quoted if you need a literal `)`.
+ */
 static void
-debris_feed_env(DEBRIS, const char *data)
+debris_feed_envstr(DEBRIS, const char *data)
 {
   tino_str_args		split;
 
@@ -412,7 +505,7 @@ debris_interactive(DEBRIS, int fd)
   while (!D->end)
     {
       if (tty && !tino_buf_get_lenO(&D->in))
-        call_print(D, "{$prompt}", NULL);
+        debris_call_print(D, "{$prompt}", NULL), outx(D);
       if ((line=tino_buf_line_readE(&buf, fd, '\n'))==0)
         break;
       while (isspace(*line))			/* skip spaces at start of interactive line	*/
@@ -423,6 +516,22 @@ debris_interactive(DEBRIS, int fd)
   tino_buf_freeO(&buf);
 }
 
+/************************************************************************/
+/* Main program								*/
+/************************************************************************/
+
+/* Return a suitable value for exit()
+ */
+static int
+debris_exit(DEBRIS)
+{
+  int	code;
+
+  code	= D->end & 0xff;
+  debris_free(D);
+  return code;
+}
+
 int
 main(int argc, const char * const *argv)	/* Yay, that's easy, right?	*/
 {
@@ -431,7 +540,7 @@ main(int argc, const char * const *argv)	/* Yay, that's easy, right?	*/
 
   debris_init(D, argc, argv);
 
-  debris_feed_env(D, getenv("DEBRIS"));		/* Split env DEBRIS into commands	*/
+  debris_feed_envstr(D, getenv("DEBRIS"));	/* Split env DEBRIS into commands	*/
 
   /* we cannot use debris_freed_args here, as D->cmdline might get consumed by commands */
   while (*D->cmdline)
@@ -447,6 +556,10 @@ main(int argc, const char * const *argv)	/* Yay, that's easy, right?	*/
   return debris_exit(D);			/* done	*/
 }
 
-#define	DEBRIS_CFN(X,Y)	static const char *cmd_##X(DEBRIS, char **args) Y
+/************************************************************************/
+/* Now compile all DebRIS commands					*/
+/************************************************************************/
+
+#define	DEBRIS_CFN(X,Y)	DEBRIS_CMD_FN(CMD(X)) Y
 #include "cmd.h"
 
