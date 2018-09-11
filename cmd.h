@@ -131,12 +131,12 @@ C(echoc, 0, -1, "[args..]", "like echo, without NL at the end",
 
 C(print, 0, -1, "[args..]", "evaluate arguments and print them, without sparator, without NL",
 {
-  DP(("(%p)", args));
+  xDP(("(%p)", args));
   while (*args)
     {
       struct debris_expr	*e;
 
-      DP(("() %s", *args));
+      xDP(("() %s", *args));
       outsep(D, NULL);
       e	= EXPR(eval)(D, *args++);
       outesc(D, EXPR(str)(e));
