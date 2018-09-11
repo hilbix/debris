@@ -53,7 +53,7 @@ struct _debris
     int			interactive;	/* do we interact with stdin	*/
 
     tino_hash_map	map_cmd, map_var, map_topic;
-    int			cmdmaxwidth;
+    int			maxwidth_cmd, maxwidth_var, maxwidth_topic;
 
     struct _debris_cmd	*currentcmd;	/* pointer to current command	*/
     const char		*lasterr;	/* value of last error		*/
@@ -131,10 +131,11 @@ _debris_hash(DEBRIS, tino_hash_map *h, const char *name, size_t create)
         }										\
 \
         static void									\
-        debris_add_##TYPE(DEBRIS, const char *name, ##__VA_ARGS__, const char *help)	\
+        debris_add_##TYPE(DEBRIS, const char *name, int w, ##__VA_ARGS__, const char *help)	\
         {										\
           struct _debris_##TYPE	*ptr;							\
 \
+          if (D->maxwidth_##TYPE<w) D->maxwidth_##TYPE = w;				\
           ptr		= debris_##TYPE(D, name, 1);					\
           FATAL(ptr->name);								\
           ptr->name	= tino_strdupO(name);						\
@@ -146,14 +147,10 @@ _debris_hash(DEBRIS, tino_hash_map *h, const char *name, size_t create)
 
 DEBRIS_MAP(cmd, DEBRIS_CMD_FN(*fn), int min, int max, const char *usage)(
 {
-  int	w;
-
+  ptr->fn	= fn;
   ptr->min	= min;
   ptr->max	= max;
   ptr->usage	= tino_strdupN(usage);
-  w	= strlen(name)+strlen(usage);
-  if (w>=D->cmdmaxwidth)
-    D->cmdmaxwidth	= w+1;
 })
 
 DEBRIS_MAP(var, int mode, const char *def)(
@@ -231,10 +228,17 @@ outp(DEBRIS, const char *format, ...)
 {
   static struct tino_print_ctx	ctx;
   tino_va_list			list;
+  const char			*s;
 
   tino_va_start(list, format);
-  tino_print(tino_print_ctx_io(&ctx, D->_wr), "%v", list);
+  s	= tino_str_vprintf(&list);
   tino_va_end(list);
+#if 0
+  tino_print(tino_print_ctx_io(&ctx, D->_wr), "%v", &list);
+#else
+  tino_print(tino_print_ctx_io(&ctx, D->_wr), "%s", s);
+  tino_free_constO(s);
+#endif
   return 0;
 }
 
@@ -373,11 +377,13 @@ EXPR(eval)(DEBRIS, const char *expr)
   struct debris_expr	*e;
 
   e	= tino_alloc0O(sizeof *e);
+  tino_buf_add_sO(&e->buf, expr);
+#if 0
   out_push_buf(&e->buf);
   000;
-  tino_buf_add_sO(&e->buf, expr);
   000;
   out_pop_buf(&e->buf);
+#endif
   return e;
 }
 
@@ -389,7 +395,7 @@ EXPR(str)(struct debris_expr *expr)
 
 #define	debris_expr_free(VAR)	EXPR(FREE)(&VAR)
 
-static const char *
+static void
 EXPR(FREE)(struct debris_expr **ptr)
 {
   struct debris_expr *expr;
@@ -397,7 +403,7 @@ EXPR(FREE)(struct debris_expr **ptr)
   FATAL(!ptr);
   expr	= *ptr;
   FATAL(!expr);
-  tino_buf_free(&e->buf);
+  tino_buf_freeO(&expr->buf);
   TINO_FREE_NULL(*ptr);
 }
 
