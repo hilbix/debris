@@ -4,4 +4,4 @@ container:
 make_task:
   prep_script: git submodule update --init
   compile_script: make
-  install_script: sudo make install
+  install_script: make install
