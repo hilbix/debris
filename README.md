@@ -1,3 +1,5 @@
+[![DebRIS dev Build Status](https://api.cirrus-ci.com/github/hilbix/debris.svg?branch=dev)](https://cirrus-ci.com/github/hilbix/debris/dev)
+
 > Note that this is in the beginning.  What you see here are the goals.  Not all goals are fulfilled.
 
 # DebRIS
