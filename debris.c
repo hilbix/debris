@@ -228,17 +228,17 @@ outp(DEBRIS, const char *format, ...)
 {
   static struct tino_print_ctx	ctx;
   tino_va_list			list;
-  const char			*s;
 
   tino_va_start(list, format);
-  s	= tino_str_vprintf(&list);
-  tino_va_end(list);
-#if 0
-  tino_print(tino_print_ctx_io(&ctx, D->_wr), "%v", &list);
+  xDP(("(%p, '%s') %p:'%s'%p", D, format, &list, tino_va_str(list), tino_va_get(list)));
+#if 1
+  tino_printO(tino_print_ctx_io(&ctx, D->_wr), "%v", &list);
 #else
+  const char	*s = tino_str_vprintf(&list);
   tino_print(tino_print_ctx_io(&ctx, D->_wr), "%s", s);
   tino_free_constO(s);
 #endif
+  tino_va_end(list);
   return 0;
 }
 
