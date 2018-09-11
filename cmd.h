@@ -18,15 +18,15 @@
 #endif
 
 #define	V(AUTO,NAME,DEFAULT,HELP)	\
-                                        DEBRIS_VADD(#NAME, AUTO, DEFAULT, HELP)
+                                        DEBRIS_VADD(#NAME, sizeof #NAME, AUTO, DEFAULT, HELP)
 
 #define	C(NAME,MIN,MAX,USAGE,HELP,FN)	\
                                         DEBRIS_CNAME(NAME)		\
                                         DEBRIS_CFN(NAME,FN)		\
                                         DEBRIS_CALL(NAME,MIN,MAX)	\
-                                        DEBRIS_CADD(#NAME, CMD(NAME), MIN, MAX, USAGE, HELP)
+                                        DEBRIS_CADD(#NAME, sizeof #NAME#USAGE, CMD(NAME), MIN, MAX, USAGE, HELP)
 
-#define H(NAME,HELP)			DEBRIS_TOPIC(#NAME, HELP)
+#define H(NAME,HELP)			DEBRIS_TOPIC(#NAME, sizeof #NAME, HELP)
 
 V(1, prompt,	"[{=prefix}]{=loc}@{=name}:{@=dir}$ ",	"DebRIS prompt")
 V(0, prefix,	"DebRIS",				"DebRIS prompt prefix")
@@ -37,13 +37,15 @@ V(1, version,	DEBRIS_VERSION,				"DebRIS version")
 V(0, sep,	"\t",					"separator for echo")
 V(1, err,	"",					"automatic error variable (error string of last command)")
 
-H(usage, "{arg0} 'command'..\n\
-")
-H(expr, "\\{expr\\}\n\
-	=VAR	Access a DebRIS variable, shortcut for: var VAR\n\
-	$ENV	Environment variable, shortcut for: env ENV\n\
-	FN arg	call a DebRIS function with given args, returns the output\n\
-")
+H(usage, "{arg0} 'command'..\n"
+       ""
+)
+H(expr, "\\{expr\\}\n"
+       "=VAR	Access a DebRIS variable, shortcut for: var VAR\n"
+       "$ENV	Environment variable, shortcut for: env ENV\n"
+       "FN arg	call a DebRIS function with given args, returns the output\n"
+       ""
+)
 
 C(exit, 0,1, "[n]", "exit DebRIS with given return code, default: 0",
 {
@@ -54,27 +56,44 @@ C(exit, 0,1, "[n]", "exit DebRIS with given return code, default: 0",
   return 0;
 })
 
-C(help, 0, 2, "[command] | help [topic]", "explain command or topic",
+C(help, 0, 1, "[command|topic]", "explain command or topic",
 {
   const struct _debris_cmd	*cmd;
   const struct _debris_topic	*topic;
   const char			*p;
+  tino_hash_iter		iter;
   int				pos;
 
   if (!args[0])
     {
-      tino_hash_iter		iter;
 
       for (tino_hash_iter_start(&iter, &D->map_cmd, 0); (cmd=tino_hash_iter_data_rawptr(&iter))!=0; tino_hash_iter_next(&iter))
-        outp(D, "%s %s%*s%.*s\n", cmd->name, cmd->usage, (int)(D->cmdmaxwidth-strlen(cmd->name)-strlen(cmd->usage)), "", tino_str_nclen(cmd->help, '\n'), cmd->help);
+        outp(D, "%s %s%*s%.*s\n", cmd->name, cmd->usage,
+             (int)(D->maxwidth_cmd-strlen(cmd->name)-strlen(cmd->usage)), "",
+             tino_str_nclen(cmd->help, '\n'), cmd->help);
       return 0;
     }
+
+  topic	= debris_topic(D, args[0], 0);
+  if (topic)
+    {
+      pos	= tino_str_nclen(topic->help, '\n');
+      outp(D, "%s: %.*s\n", topic->name, pos, topic->help);
+      while (topic->help[pos++]=='\n')
+        {
+          int	len;
+
+          len	= tino_str_nclen(topic->help+pos, '\n');
+          outp(D, "\t%.*s\n", len, topic->help+pos);
+          pos	+= len;
+        }
+      return 0;
+    }
+
   cmd	= debris_cmd(D, args[0], 0);
   if (!cmd)
-    return "unknown command";
+    return "unknown. try: help help";
 
-  if (cmd!=D->currentcmd && args[1])
-    return "command do not have topics, try 'help help topic'";
   outp(D, "%s %s\n", cmd->name, cmd->usage);
   for (p=cmd->help; *p; p++)
     {
@@ -85,23 +104,14 @@ C(help, 0, 2, "[command] | help [topic]", "explain command or topic",
         break;
     }
 
-  if (!args[1])
+  if (cmd != D->currentcmd)
     return 0;
 
-  topic	= debris_topic(D, args[1], 0);
-  if (!topic)
-    return "unknown topic";
-  pos	= tino_str_nclen(topic->help, '\n');
-  outp(D, "%s: %.*s\n", topic->name, pos, topic->help);
-  while (topic->help[pos++]=='\n')
-    {
-      int	len;
-
-      len	= tino_str_nclen(topic->help+pos, '\n');
-      outp(D, "\t%.*s\n", len, topic->help+pos);
-      pos	+= len;
-    }
-
+  outx(D);
+  outp(D, "Topics:\n");
+  outx(D);
+  for (tino_hash_iter_start(&iter, &D->map_topic, 0); (topic=tino_hash_iter_data_rawptr(&iter))!=0; tino_hash_iter_next(&iter))
+     outp(D, "\t%-*s %.*s\n", D->maxwidth_topic, topic->name, tino_str_nclen(topic->help, '\n'), topic->help);
   return 0;
 })
 
